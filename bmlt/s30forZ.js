@@ -108,9 +108,31 @@ z-index:999998;
                 });
 
                 hoverZone.addEventListener("mouseleave", () => {
-                    leaveTimer = setTimeout(() => {
+
+                    const checkMouse = (e) => {
+
+                        const r = hoverZone.getBoundingClientRect();
+
+                        // Extra distance around hover zone
+                        const buffer = 300;
+                        if (
+                            e.clientX >= r.left - buffer &&
+                            e.clientX <= r.right + buffer &&
+                            e.clientY >= r.top - buffer &&
+                            e.clientY <= r.bottom + buffer
+                        ) {
+                            // Still close enough.
+                            return;
+                        }
+
                         moveAllBadges(false);
-                    }, 100);
+
+                        document.removeEventListener("mousemove", checkMouse);
+
+                    };
+
+                    document.addEventListener("mousemove", checkMouse);
+
                 });
             }
 
