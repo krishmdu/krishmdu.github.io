@@ -20,35 +20,38 @@
     return parseFloat(lp.innerText.replace(/,/g, ""));
   }
 
-  function shiftNearbyBadges(centerIndex, range = 1) {
+  function fadeNearbyBadges(centerIndex, range = 1) {
+
     sensexRows.forEach((row, index) => {
-      const badge = row.querySelector(".sensexDiff");
 
-      if (!badge) return;
+        const badge = row.querySelector(".sensexDiff");
 
-      if (Math.abs(index - centerIndex) <= range) {
-        badge.style.left = "auto";
-        badge.style.right = "100%";
-        badge.style.marginLeft = "0";
-        badge.style.marginRight = "6px";
-      } else {
-        badge.style.right = "auto";
-        badge.style.left = "100%";
-        badge.style.marginLeft = "6px";
-        badge.style.marginRight = "0";
-      }
+        if (!badge)
+            return;
+
+        if (Math.abs(index - centerIndex) <= range) {
+
+            badge.style.opacity = "0.35";
+
+        } else {
+
+            badge.style.opacity = "1";
+
+        }
+
     });
-  }
 
-  function restoreBadges() {
+}
+
+function restoreBadges() {
+
     document.querySelectorAll(".sensexDiff").forEach((badge) => {
-      badge.style.right = "auto";
-      badge.style.left = "100%";
-      badge.style.marginLeft = "6px";
-      badge.style.marginRight = "0";
-    });
-  }
 
+        badge.style.opacity = "1";
+
+    });
+
+}
   function updateBadges() {
     const spot = getSensexSpot();
 
@@ -96,9 +99,10 @@ font:700 11px Consolas,Arial;
 color:white;
 white-space:nowrap;
 box-shadow:0 2px 6px rgba(0,0,0,.35);
-cursor:pointer;
+cursor:default;
+pointer-events:none;
 user-select:none;
-transition:left .35s,right .35s;
+transition:opacity .15s ease;
 z-index:999999;
 `;
 
@@ -156,7 +160,7 @@ z-index:999999;
 
     activeSensexRow = index;
 
-    shiftNearbyBadges(index, 1);
+    fadeNearbyBadges(index, 1);
   });
 
   const timer = setInterval(updateBadges, 10000);
