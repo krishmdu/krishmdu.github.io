@@ -1,0 +1,1 @@
+ javascript:alert(new Date().toLocaleTimeString());
