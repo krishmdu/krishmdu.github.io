@@ -3,6 +3,8 @@
     parseInt(prompt("Update every 10 seconds.\nHow many updates?", "10")) || 10;
 
   let count = 0;
+  let sensexRows = [];
+  let activeSensexRow = -1;
 
   function getSensexSpot() {
     const idx = [...document.querySelectorAll(".item")].find((x) => {
@@ -19,9 +21,7 @@
   }
 
   function shiftNearbyBadges(centerIndex, range = 1) {
-    const rows = [...document.querySelectorAll(".item")];
-
-    rows.forEach((row, index) => {
+    sensexRows.forEach((row, index) => {
       const badge = row.querySelector(".sensexDiff");
 
       if (!badge) return;
@@ -54,6 +54,8 @@
 
     if (!spot) return;
 
+    sensexRows = [];
+
     document.querySelectorAll(".item .name").forEach((name) => {
       const txt = name.innerText.replace(/\s+/g, " ").trim();
 
@@ -69,6 +71,10 @@
       const diff = Math.round(strike - spot);
 
       const holder = name.parentElement;
+
+      const row = holder.closest(".item");
+
+      if (row) sensexRows.push(row);
 
       holder.style.position = "relative";
 
@@ -108,28 +114,6 @@ z-index:999999;
       }
 
       badge.textContent = (diff >= 0 ? "+" : "") + diff;
-    });
-
-    const rows = [...document.querySelectorAll(".item")];
-
-    rows.forEach((row, index) => {
-      if (row.dataset.badgeEventsAttached) return;
-
-      row.dataset.badgeEventsAttached = "Y";
-
-      let timer;
-
-      row.addEventListener("mouseenter", () => {
-        clearTimeout(timer);
-
-        shiftNearbyBadges(index, 1);
-      });
-
-      row.addEventListener("mouseleave", () => {
-        timer = setTimeout(() => {
-          restoreBadges();
-        }, 150);
-      });
     });
 
     count++;
