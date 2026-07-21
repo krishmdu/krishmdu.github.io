@@ -98,7 +98,7 @@ white-space:nowrap;
 box-shadow:0 2px 6px rgba(0,0,0,.35);
 cursor:pointer;
 user-select:none;
-transition:left .25s,right .25s;
+transition:left .35s,right .35s;
 z-index:999999;
 `;
 
