@@ -127,5 +127,37 @@ z-index:999999;
 
   updateBadges();
 
+  document.addEventListener("mousemove", (e) => {
+    const row = e.target.closest(".item");
+
+    if (!row) {
+      if (activeSensexRow !== -1) {
+        restoreBadges();
+
+        activeSensexRow = -1;
+      }
+
+      return;
+    }
+
+    const index = sensexRows.indexOf(row);
+
+    if (index === -1) {
+      if (activeSensexRow !== -1) {
+        restoreBadges();
+
+        activeSensexRow = -1;
+      }
+
+      return;
+    }
+
+    if (index === activeSensexRow) return;
+
+    activeSensexRow = index;
+
+    shiftNearbyBadges(index, 1);
+  });
+
   const timer = setInterval(updateBadges, 10000);
 })();
