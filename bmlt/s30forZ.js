@@ -1,8 +1,11 @@
 (function () {
     const LOOP =
-        parseInt(prompt("Update every 10 seconds.\nHow many updates?", "8")) || 8;
+        parseInt(prompt("Update every 10 seconds.\nHow many updates?", "6")) || 6;
 
     let count = 0;
+
+    let interactionRect = null;
+    let badgesLeft = false;
 
     function getSensexSpot() {
         const idx = [...document.querySelectorAll(".item")].find((x) => {
@@ -83,71 +86,19 @@ z-index:999999;
 `;
 
                 holder.appendChild(badge);
-                const hoverZone = document.createElement("span");
-                const debugBuffer = document.createElement("span");
+                if (!interactionRect) {
 
-                debugBuffer.style.cssText = `
-position:absolute;
-left:100%;
-top:50%;
-transform:translateY(-50%);
-width:${150 + 300 * 2}px;
-height:${80 + 300 * 2}px;
-margin-left:${-10 - 300}px;
-margin-top:-300px;
-background:rgba(0,255,255,.08);
-border:1px dashed cyan;
-pointer-events:none;
-z-index:999997;
-`;
+                    interactionRect = {
 
-                holder.appendChild(debugBuffer);
-                hoverZone.style.cssText = `
-position:absolute;
-left:100%;
-top:50%;
-transform:translateY(-50%);
-width:150px;
-height:80px;
-margin-left:-10px;
-background:rgba(255,255,0,0.18);
-border:1px dashed orange;
-z-index:999998;
-`;
+                        left: 0,
+                        top: 0,
+                        right: 0,
+                        bottom: 0
 
-                holder.appendChild(hoverZone);
-
-                let leaveTimer;
-
-                hoverZone.addEventListener("mouseenter", () => {
-                    clearTimeout(leaveTimer);
-
-                    moveAllBadges(true);
-                });
-
-                hoverZone.addEventListener("mouseleave", () => {
-                    const checkMouse = (e) => {
-                        const r = hoverZone.getBoundingClientRect();
-
-                        // Extra distance around hover zone
-                        const buffer = 300;
-                        if (
-                            e.clientX >= r.left - buffer &&
-                            e.clientX <= r.right + buffer &&
-                            e.clientY >= r.top - buffer &&
-                            e.clientY <= r.bottom + buffer
-                        ) {
-                            // Still close enough.
-                            return;
-                        }
-
-                        moveAllBadges(false);
-
-                        document.removeEventListener("mousemove", checkMouse);
                     };
 
-                    document.addEventListener("mousemove", checkMouse);
-                });
+                }
+
             }
 
             if (type === "PE") {
@@ -161,6 +112,22 @@ z-index:999998;
             badge.textContent = (diff >= 0 ? "+" : "") + diff;
         });
 
+        const firstBadge = document.querySelector(".sensexDiff");
+
+        if (firstBadge) {
+
+            const r = firstBadge.getBoundingClientRect();
+
+            interactionRect = {
+
+                left: r.left - 30,
+                right: r.right + 170,
+                top: 0,
+                bottom: window.innerHeight
+
+            };
+
+        }
         count++;
 
         if (count >= LOOP) {
@@ -171,6 +138,36 @@ z-index:999998;
     }
 
     updateBadges();
+
+    document.addEventListener("mousemove", (e) => {
+
+        if (!interactionRect)
+            return;
+
+        const inside =
+
+            e.clientX >= interactionRect.left &&
+            e.clientX <= interactionRect.right &&
+            e.clientY >= interactionRect.top &&
+            e.clientY <= interactionRect.bottom;
+
+        if (inside && !badgesLeft) {
+
+            badgesLeft = true;
+
+            moveAllBadges(true);
+
+        }
+
+        if (!inside && badgesLeft) {
+
+            badgesLeft = false;
+
+            moveAllBadges(false);
+
+        }
+
+    });
 
     const timer = setInterval(updateBadges, 10000);
 })();
