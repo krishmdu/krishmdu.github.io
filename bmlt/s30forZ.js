@@ -1,13 +1,13 @@
 (function () {
+  const LOOP =
+    parseInt(prompt("Update every 10 seconds.\nHow many updates?", "10")) || 10;
 
-const LOOP = parseInt(prompt("Update every 10 seconds.\nHow many updates?", "10")) || 10;
+  let count = 0;
 
-let count = 0;
-
-function getSensexSpot() {
-    const idx = [...document.querySelectorAll(".item")].find(x => {
-        const n = x.querySelector(".name");
-        return n && n.innerText.trim() === "SENSEX";
+  function getSensexSpot() {
+    const idx = [...document.querySelectorAll(".item")].find((x) => {
+      const n = x.querySelector(".name");
+      return n && n.innerText.trim() === "SENSEX";
     });
 
     if (!idx) return null;
@@ -16,44 +16,70 @@ function getSensexSpot() {
     if (!lp) return null;
 
     return parseFloat(lp.innerText.replace(/,/g, ""));
-}
+  }
 
-function updateBadges() {
+  function shiftNearbyBadges(centerIndex, range = 1) {
+    const rows = [...document.querySelectorAll(".item")];
 
+    rows.forEach((row, index) => {
+      const badge = row.querySelector(".sensexDiff");
+
+      if (!badge) return;
+
+      if (Math.abs(index - centerIndex) <= range) {
+        badge.style.left = "auto";
+        badge.style.right = "100%";
+        badge.style.marginLeft = "0";
+        badge.style.marginRight = "6px";
+      } else {
+        badge.style.right = "auto";
+        badge.style.left = "100%";
+        badge.style.marginLeft = "6px";
+        badge.style.marginRight = "0";
+      }
+    });
+  }
+
+  function restoreBadges() {
+    document.querySelectorAll(".sensexDiff").forEach((badge) => {
+      badge.style.right = "auto";
+      badge.style.left = "100%";
+      badge.style.marginLeft = "6px";
+      badge.style.marginRight = "0";
+    });
+  }
+
+  function updateBadges() {
     const spot = getSensexSpot();
 
-    if (!spot)
-        return;
+    if (!spot) return;
 
-    document.querySelectorAll(".item .name").forEach(name => {
+    document.querySelectorAll(".item .name").forEach((name) => {
+      const txt = name.innerText.replace(/\s+/g, " ").trim();
 
-        const txt = name.innerText.replace(/\s+/g, " ").trim();
+      const m = txt.match(/^SENSEX.*?(\d{5})\s+(PE|CE)$/i);
 
-        const m = txt.match(/^SENSEX.*?(\d{5})\s+(PE|CE)$/i);
+      if (!m) return;
 
-        if (!m)
-            return;
+      const strike = parseInt(m[1]);
 
-        const strike = parseInt(m[1]);
+      const type = m[2].toUpperCase();
 
-        const type = m[2].toUpperCase();
+      // Strike relative to Spot
+      const diff = Math.round(strike - spot);
 
-        // Strike relative to Spot
-        const diff = Math.round(strike - spot);
+      const holder = name.parentElement;
 
-        const holder = name.parentElement;
+      holder.style.position = "relative";
 
-        holder.style.position = "relative";
+      let badge = holder.querySelector(".sensexDiff");
 
-        let badge = holder.querySelector(".sensexDiff");
+      if (!badge) {
+        badge = document.createElement("span");
 
-        if (!badge) {
+        badge.className = "sensexDiff";
 
-            badge = document.createElement("span");
-
-            badge.className = "sensexDiff";
-
-            badge.style.cssText = `
+        badge.style.cssText = `
 position:absolute;
 left:100%;
 margin-left:6px;
@@ -66,60 +92,56 @@ white-space:nowrap;
 box-shadow:0 2px 6px rgba(0,0,0,.35);
 cursor:pointer;
 user-select:none;
-transition:left .20s,right .20s;
+transition:left .25s,right .25s;
 z-index:999999;
 `;
 
-            holder.appendChild(badge);
+        holder.appendChild(badge);
+      }
 
-            badge.addEventListener("mouseenter", () => {
+      if (type === "PE") {
+        badge.style.background = "#d32f2f";
+        badge.style.borderRadius = "14px";
+      } else {
+        badge.style.background = "#2e7d32";
+        badge.style.borderRadius = "3px";
+      }
 
-                const w = badge.offsetWidth;
+      badge.textContent = (diff >= 0 ? "+" : "") + diff;
+    });
 
-                badge.style.transform =
-                    `translate(${-w - name.offsetWidth - 12}px,-50%)`;
+    const rows = [...document.querySelectorAll(".item")];
 
-            });
+    rows.forEach((row, index) => {
+      if (row.dataset.badgeEventsAttached) return;
 
-            badge.addEventListener("mouseleave", () => {
+      row.dataset.badgeEventsAttached = "Y";
 
-                badge.style.transform =
-                    "translate(6px,-50%)";
+      let timer;
 
-            });
+      row.addEventListener("mouseenter", () => {
+        clearTimeout(timer);
 
-        }
+        shiftNearbyBadges(index, 1);
+      });
 
-        if (type === "PE") {
-
-            badge.style.background = "#d32f2f";
-            badge.style.borderRadius = "14px";
-
-        } else {
-
-            badge.style.background = "#2e7d32";
-            badge.style.borderRadius = "3px";
-
-        }
-
-        badge.textContent = (diff >= 0 ? "+" : "") + diff;
-
+      row.addEventListener("mouseleave", () => {
+        timer = setTimeout(() => {
+          restoreBadges();
+        }, 150);
+      });
     });
 
     count++;
 
     if (count >= LOOP) {
+      clearInterval(timer);
 
-        clearInterval(timer);
-
-        location.reload();
-
+      location.reload();
     }
+  }
 
-}
+  updateBadges();
 
-updateBadges();
-
-const timer = setInterval(updateBadges, 10000);
-
+  const timer = setInterval(updateBadges, 10000);
 })();
