@@ -1,6 +1,6 @@
 (function () {
 
-const LOOP = parseInt(prompt("Update every 10 seconds.\nHow many updates?", "20")) || 20;
+const LOOP = parseInt(prompt("Update every 10 seconds.\nHow many updates?", "10")) || 10;
 
 let count = 0;
 
