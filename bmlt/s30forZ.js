@@ -21,13 +21,13 @@
     function moveAllBadges(toLeft) {
         document.querySelectorAll(".sensexDiff").forEach((badge) => {
             if (toLeft) {
-                badge.style.left = "auto";
-                badge.style.right = "100%";
-                badge.style.marginLeft = "0";
-                badge.style.marginRight = "8px";
-            } else {
+                badge.style.left = "-70px";
                 badge.style.right = "auto";
+                badge.style.marginLeft = "0";
+                badge.style.marginRight = "0";
+            } else {
                 badge.style.left = "100%";
+                badge.style.right = "auto";
                 badge.style.marginLeft = "8px";
                 badge.style.marginRight = "0";
             }
