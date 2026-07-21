@@ -1,6 +1,6 @@
 (function () {
     const LOOP =
-        parseInt(prompt("Update every 10 seconds.\nHow many updates?", "2")) || 2;
+        parseInt(prompt("Update every 10 seconds.\nHow many updates?", "4")) || 4;
 
     let count = 0;
 
@@ -90,9 +90,9 @@ position:absolute;
 left:100%;
 top:50%;
 transform:translateY(-50%);
-width:80px;
-height:40px;
-margin-left:-20px;
+width:150px;
+height:80px;
+margin-left:-10px;
 background:transparent;
 z-index:999998;
 `;
