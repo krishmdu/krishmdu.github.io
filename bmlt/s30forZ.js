@@ -21,7 +21,7 @@
     function moveAllBadges(toLeft) {
         document.querySelectorAll(".sensexDiff").forEach((badge) => {
             if (toLeft) {
-                badge.style.left = "-70px";
+                badge.style.left = "-55px";
                 badge.style.right = "auto";
                 badge.style.marginLeft = "0";
                 badge.style.marginRight = "0";
