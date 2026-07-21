@@ -74,19 +74,17 @@ z-index:999999;
 
             badge.addEventListener("mouseenter", () => {
 
-                badge.style.left = "auto";
-                badge.style.right = "100%";
-                badge.style.marginRight = "6px";
-                badge.style.marginLeft = "0";
+                const w = badge.offsetWidth;
+
+                badge.style.transform =
+                    `translate(${-w - name.offsetWidth - 12}px,-50%)`;
 
             });
 
             badge.addEventListener("mouseleave", () => {
 
-                badge.style.right = "auto";
-                badge.style.left = "100%";
-                badge.style.marginLeft = "6px";
-                badge.style.marginRight = "0";
+                badge.style.transform =
+                    "translate(6px,-50%)";
 
             });
 
