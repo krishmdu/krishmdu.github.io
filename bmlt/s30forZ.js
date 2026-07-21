@@ -1,6 +1,6 @@
 (function () {
     const LOOP =
-        parseInt(prompt("Update every 10 seconds.\nHow many updates?", "5")) || 5;
+        parseInt(prompt("Update every 10 seconds.\nHow many updates?", "8")) || 8;
 
     let count = 0;
 
@@ -84,7 +84,24 @@ z-index:999999;
 
                 holder.appendChild(badge);
                 const hoverZone = document.createElement("span");
+                const debugBuffer = document.createElement("span");
 
+                debugBuffer.style.cssText = `
+position:absolute;
+left:100%;
+top:50%;
+transform:translateY(-50%);
+width:${150 + 300 * 2}px;
+height:${80 + 300 * 2}px;
+margin-left:${-10 - 300}px;
+margin-top:-300px;
+background:rgba(0,255,255,.08);
+border:1px dashed cyan;
+pointer-events:none;
+z-index:999997;
+`;
+
+                holder.appendChild(debugBuffer);
                 hoverZone.style.cssText = `
 position:absolute;
 left:100%;
@@ -93,7 +110,8 @@ transform:translateY(-50%);
 width:150px;
 height:80px;
 margin-left:-10px;
-background:transparent;
+background:rgba(255,255,0,0.18);
+border:1px dashed orange;
 z-index:999998;
 `;
 
@@ -108,9 +126,7 @@ z-index:999998;
                 });
 
                 hoverZone.addEventListener("mouseleave", () => {
-
                     const checkMouse = (e) => {
-
                         const r = hoverZone.getBoundingClientRect();
 
                         // Extra distance around hover zone
@@ -128,11 +144,9 @@ z-index:999998;
                         moveAllBadges(false);
 
                         document.removeEventListener("mousemove", checkMouse);
-
                     };
 
                     document.addEventListener("mousemove", checkMouse);
-
                 });
             }
 
