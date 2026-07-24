@@ -1,73 +1,111 @@
-(function () {
-    const LOOP =
-        parseInt(prompt("Update every 10 seconds.\nHow many updates?", "6")) || 6;
+(
+    function () {
+        const LOOP =
+            parseInt(prompt("Update every 10 seconds.\nHow many updates?", "6")) || 6;
 
-    let count = 0;
+        function showMessage(msg) {
 
-    let interactionRect = null;
-    let badgesLeft = false;
+            const old = document.getElementById("SpotDiffMessage");
+            if (old) old.remove();
 
-    function getSensexSpot() {
-        const idx = [...document.querySelectorAll(".item")].find((x) => {
-            const n = x.querySelector(".name");
-            return n && n.innerText.trim() === "SENSEX";
-        });
+            const box = document.createElement("div");
+            box.id = "SpotDiffMessage";
 
-        if (!idx) return null;
+            box.innerHTML = msg;
 
-        const lp = idx.querySelector(".last-price");
-        if (!lp) return null;
+            box.style.cssText = `
+        position:fixed;
+        top:20px;
+        right:20px;
+        max-width:420px;
+        padding:14px 18px;
+        background:#d32f2f;
+        color:white;
+        font:14px Arial,sans-serif;
+        border-radius:8px;
+        box-shadow:0 4px 12px rgba(0,0,0,.35);
+        z-index:2147483647;
+        white-space:pre-line;
+    `;
 
-        return parseFloat(lp.innerText.replace(/,/g, ""));
-    }
+            document.body.appendChild(box);
 
-    function moveAllBadges(toLeft) {
-        document.querySelectorAll(".sensexDiff").forEach((badge) => {
-            if (toLeft) {
-                badge.style.left = "-55px";
-                badge.style.right = "auto";
-                badge.style.marginLeft = "0";
-                badge.style.marginRight = "0";
-            } else {
-                badge.style.left = "100%";
-                badge.style.right = "auto";
-                badge.style.marginLeft = "8px";
-                badge.style.marginRight = "0";
+            setTimeout(() => {
+                box.remove();
+            }, 15000);
+        }
+
+        let count = 0;
+
+        let interactionRect = null;
+        let badgesLeft = false;
+
+        function getSensexSpot() {
+            const idx = [...document.querySelectorAll(".item")].find((x) => {
+                const n = x.querySelector(".name");
+                return n && n.innerText.trim() === "SENSEX";
+            });
+
+            if (!idx) return null;
+
+            const lp = idx.querySelector(".last-price");
+            if (!lp) return null;
+
+            return parseFloat(lp.innerText.replace(/,/g, ""));
+        }
+
+        function moveAllBadges(toLeft) {
+            document.querySelectorAll(".sensexDiff").forEach((badge) => {
+                if (toLeft) {
+                    badge.style.left = "-55px";
+                    badge.style.right = "auto";
+                    badge.style.marginLeft = "0";
+                    badge.style.marginRight = "0";
+                } else {
+                    badge.style.left = "100%";
+                    badge.style.right = "auto";
+                    badge.style.marginLeft = "8px";
+                    badge.style.marginRight = "0";
+                }
+            });
+        }
+
+        function updateBadges() {
+            const spot = getSensexSpot();
+
+            if (spot == null) {
+                showMessage(
+                    `Unable to locate NIFTY 50 spot price.Bookmarklet terminated.`
+                );
+                return;
             }
-        });
-    }
 
-    function updateBadges() {
-        const spot = getSensexSpot();
+            document.querySelectorAll(".item .name").forEach((name) => {
+                const txt = name.innerText.replace(/\s+/g, " ").trim();
 
-        if (!spot) return;
+                const m = txt.match(/^SENSEX.*?(\d{5})\s+(PE|CE)$/i);
 
-        document.querySelectorAll(".item .name").forEach((name) => {
-            const txt = name.innerText.replace(/\s+/g, " ").trim();
+                if (!m) return;
 
-            const m = txt.match(/^SENSEX.*?(\d{5})\s+(PE|CE)$/i);
+                const strike = parseInt(m[1]);
 
-            if (!m) return;
+                const type = m[2].toUpperCase();
 
-            const strike = parseInt(m[1]);
+                // Strike relative to Spot
+                const diff = Math.round(strike - spot);
 
-            const type = m[2].toUpperCase();
+                const holder = name.parentElement;
 
-            // Strike relative to Spot
-            const diff = Math.round(strike - spot);
+                holder.style.position = "relative";
 
-            const holder = name.parentElement;
+                let badge = holder.querySelector(".sensexDiff");
 
-            holder.style.position = "relative";
+                if (!badge) {
+                    badge = document.createElement("span");
 
-            let badge = holder.querySelector(".sensexDiff");
+                    badge.className = "sensexDiff";
 
-            if (!badge) {
-                badge = document.createElement("span");
-
-                badge.className = "sensexDiff";
-
-                badge.style.cssText = `
+                    badge.style.cssText = `
 position:absolute;
 left:100%;
 margin-left:6px;
@@ -85,89 +123,89 @@ transition:left .25s ease,right .25s ease;
 z-index:999999;
 `;
 
-                holder.appendChild(badge);
-                if (!interactionRect) {
+                    holder.appendChild(badge);
+                    if (!interactionRect) {
 
-                    interactionRect = {
+                        interactionRect = {
 
-                        left: 0,
-                        top: 0,
-                        right: 0,
-                        bottom: 0
+                            left: 0,
+                            top: 0,
+                            right: 0,
+                            bottom: 0
 
-                    };
+                        };
+
+                    }
 
                 }
 
+                if (type === "PE") {
+                    badge.style.background = "#d32f2f";
+                    badge.style.borderRadius = "14px";
+                } else {
+                    badge.style.background = "#2e7d32";
+                    badge.style.borderRadius = "3px";
+                }
+
+                badge.textContent = (diff >= 0 ? "+" : "") + diff;
+            });
+
+            const firstBadge = document.querySelector(".sensexDiff");
+
+            if (firstBadge) {
+
+                const r = firstBadge.getBoundingClientRect();
+
+                interactionRect = {
+
+                    left: r.left - 30,
+                    right: r.right + 170,
+                    top: 0,
+                    bottom: window.innerHeight
+
+                };
+
+            }
+            count++;
+
+            if (count >= LOOP) {
+                clearInterval(timer);
+
+                location.reload();
+            }
+        }
+
+        updateBadges();
+
+        document.addEventListener("mousemove", (e) => {
+
+            if (!interactionRect)
+                return;
+
+            const inside =
+
+                e.clientX >= interactionRect.left &&
+                e.clientX <= interactionRect.right &&
+                e.clientY >= interactionRect.top &&
+                e.clientY <= interactionRect.bottom;
+
+            if (inside && !badgesLeft) {
+
+                badgesLeft = true;
+
+                moveAllBadges(true);
+
             }
 
-            if (type === "PE") {
-                badge.style.background = "#d32f2f";
-                badge.style.borderRadius = "14px";
-            } else {
-                badge.style.background = "#2e7d32";
-                badge.style.borderRadius = "3px";
+            if (!inside && badgesLeft) {
+
+                badgesLeft = false;
+
+                moveAllBadges(false);
+
             }
 
-            badge.textContent = (diff >= 0 ? "+" : "") + diff;
         });
 
-        const firstBadge = document.querySelector(".sensexDiff");
-
-        if (firstBadge) {
-
-            const r = firstBadge.getBoundingClientRect();
-
-            interactionRect = {
-
-                left: r.left - 30,
-                right: r.right + 170,
-                top: 0,
-                bottom: window.innerHeight
-
-            };
-
-        }
-        count++;
-
-        if (count >= LOOP) {
-            clearInterval(timer);
-
-            location.reload();
-        }
-    }
-
-    updateBadges();
-
-    document.addEventListener("mousemove", (e) => {
-
-        if (!interactionRect)
-            return;
-
-        const inside =
-
-            e.clientX >= interactionRect.left &&
-            e.clientX <= interactionRect.right &&
-            e.clientY >= interactionRect.top &&
-            e.clientY <= interactionRect.bottom;
-
-        if (inside && !badgesLeft) {
-
-            badgesLeft = true;
-
-            moveAllBadges(true);
-
-        }
-
-        if (!inside && badgesLeft) {
-
-            badgesLeft = false;
-
-            moveAllBadges(false);
-
-        }
-
-    });
-
-    const timer = setInterval(updateBadges, 10000);
-})();
+        const timer = setInterval(updateBadges, 10000);
+    })();
