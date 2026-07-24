@@ -10,7 +10,7 @@
     function getNIFTYSpot() {
         const idx = [...document.querySelectorAll(".item")].find((x) => {
             const n = x.querySelector(".name");
-            return n && n.innerText.trim() === "NIFTY";
+			return n && n.innerText.replace(/\s+/g, " ").trim() === "NIFTY 50";
         });
 
         if (!idx) return null;
@@ -45,7 +45,8 @@
         document.querySelectorAll(".item .name").forEach((name) => {
             const txt = name.innerText.replace(/\s+/g, " ").trim();
 
-            const m = txt.match(/^NIFTY.*?(\d{5})\s+(PE|CE)$/i);
+			const m = txt.match(/^NIFTY\b.*?(\d{5})\s+(PE|CE)$/i);
+			console.log(txt, m);
 
             if (!m) return;
 
