@@ -1,4 +1,37 @@
-(function () {
+(
+    function showMessage(msg) {
+
+    const old = document.getElementById("SpotDiffMessage");
+    if (old) old.remove();
+
+    const box = document.createElement("div");
+    box.id = "SpotDiffMessage";
+
+    box.innerHTML = msg;
+
+    box.style.cssText = `
+        position:fixed;
+        top:20px;
+        right:20px;
+        max-width:420px;
+        padding:14px 18px;
+        background:#d32f2f;
+        color:white;
+        font:14px Arial,sans-serif;
+        border-radius:8px;
+        box-shadow:0 4px 12px rgba(0,0,0,.35);
+        z-index:2147483647;
+        white-space:pre-line;
+    `;
+
+    document.body.appendChild(box);
+
+    setTimeout(() => {
+        box.remove();
+    }, 15000);
+}
+
+    function () {
     const LOOP =
         parseInt(prompt("Update every 10 seconds.\nHow many updates?", "12")) || 12;
 
