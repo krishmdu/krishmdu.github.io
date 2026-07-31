@@ -1,18 +1,4 @@
 (function () {
-    // const LOOP =
-    //     parseInt(prompt("Update every 10 seconds.\nHow many updates?", "18")) || 18;
-
-    // const input = prompt(
-    //     "Enter: iterations, refresh seconds\nExample: 25, 5",
-    //     "40, 10", "Default: 40, 5"
-    // ) || "40, 5";
-
-    // const parts = input.split(",");
-
-    // const LOOP = parseInt(parts[0].trim()) || 40;
-    // const REFRESH_SECONDS = parseFloat(parts[1]?.trim()) || 5;
-    // const REFRESH_MS = REFRESH_SECONDS * 1000;
-
     const input = prompt(
         "Enter: Iterations, Refresh Seconds\nDefault: 40, 5",
         "40, 5"

@@ -1,39 +1,19 @@
 (
     function () {
-        const LOOP =
-            parseInt(prompt("Update every 10 seconds.\nHow many updates?", "6")) || 6;
+        const input = prompt(
+            "Enter: Iterations, Refresh Seconds\nDefault: 40, 5",
+            "40, 5"
+        ) || "40, 5";
 
-        function showMessage(msg) {
+        const parts = input.split(",");
 
-            const old = document.getElementById("SpotDiffMessage");
-            if (old) old.remove();
+        let LOOP = parseInt(parts[0].trim());
+        let REFRESH_SECONDS = parseFloat(parts[1]?.trim());
 
-            const box = document.createElement("div");
-            box.id = "SpotDiffMessage";
+        if (!Number.isFinite(LOOP) || LOOP < 1) LOOP = 40;
+        if (!Number.isFinite(REFRESH_SECONDS) || REFRESH_SECONDS < 1) REFRESH_SECONDS = 5;
 
-            box.innerHTML = msg;
-
-            box.style.cssText = `
-        position:fixed;
-        top:20px;
-        right:20px;
-        max-width:420px;
-        padding:14px 18px;
-        background:#d32f2f;
-        color:white;
-        font:14px Arial,sans-serif;
-        border-radius:8px;
-        box-shadow:0 4px 12px rgba(0,0,0,.35);
-        z-index:2147483647;
-        white-space:pre-line;
-    `;
-
-            document.body.appendChild(box);
-
-            setTimeout(() => {
-                box.remove();
-            }, 15000);
-        }
+        const REFRESH_MS = REFRESH_SECONDS * 1000;
 
         let count = 0;
 
@@ -75,7 +55,7 @@
 
             if (spot == null) {
                 showMessage(
-                    `Unable to locate NIFTY 50 spot price.Bookmarklet terminated.`
+                    `Unable to locate SENSEX spot price.Bookmarklet terminated.`
                 );
                 return;
             }
@@ -207,5 +187,5 @@ z-index:999999;
 
         });
 
-        const timer = setInterval(updateBadges, 10000);
+        const timer = setInterval(updateBadges, REFRESH_MS);
     })();
