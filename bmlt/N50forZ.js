@@ -1,6 +1,32 @@
 (function () {
-    const LOOP =
-        parseInt(prompt("Update every 10 seconds.\nHow many updates?", "18")) || 18;
+    // const LOOP =
+    //     parseInt(prompt("Update every 10 seconds.\nHow many updates?", "18")) || 18;
+
+    // const input = prompt(
+    //     "Enter: iterations, refresh seconds\nExample: 25, 5",
+    //     "40, 10", "Default: 40, 5"
+    // ) || "40, 5";
+
+    // const parts = input.split(",");
+
+    // const LOOP = parseInt(parts[0].trim()) || 40;
+    // const REFRESH_SECONDS = parseFloat(parts[1]?.trim()) || 5;
+    // const REFRESH_MS = REFRESH_SECONDS * 1000;
+
+    const input = prompt(
+        "Enter: iterations, refresh seconds\nExample: 25, 5",
+        "20, 10", "Default: 40, 5"
+    ) || "40, 5";
+
+    const parts = input.split(",");
+
+    let LOOP = parseInt(parts[0].trim());
+    let REFRESH_SECONDS = parseFloat(parts[1]?.trim());
+
+    if (!Number.isFinite(LOOP) || LOOP < 1) LOOP = 20;
+    if (!Number.isFinite(REFRESH_SECONDS) || REFRESH_SECONDS < 1) REFRESH_SECONDS = 10;
+
+    const REFRESH_MS = REFRESH_SECONDS * 1000;
 
     let count = 0;
 
@@ -10,7 +36,7 @@
     function getNIFTYSpot() {
         const idx = [...document.querySelectorAll(".item")].find((x) => {
             const n = x.querySelector(".name");
-			return n && n.innerText.replace(/\s+/g, " ").trim() === "NIFTY 50";
+            return n && n.innerText.replace(/\s+/g, " ").trim() === "NIFTY 50";
         });
 
         if (!idx) return null;
@@ -45,8 +71,8 @@
         document.querySelectorAll(".item .name").forEach((name) => {
             const txt = name.innerText.replace(/\s+/g, " ").trim();
 
-			const m = txt.match(/^NIFTY\b.*?(\d{5})\s+(PE|CE)$/i);
-			console.log(txt, m);
+            const m = txt.match(/^NIFTY\b.*?(\d{5})\s+(PE|CE)$/i);
+            console.log(txt, m);
 
             if (!m) return;
 
@@ -170,5 +196,5 @@ z-index:999999;
 
     });
 
-    const timer = setInterval(updateBadges, 10000);
+    const timer = setInterval(updateBadges, REFRESH_MS);
 })();
