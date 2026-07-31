@@ -1,16 +1,17 @@
 (
     function () {
         const input = prompt(
-            "Enter: Iterations, Refresh Seconds\nDefault: 40, 5",
-            "40, 5"
-        ) || "40, 5";
+            "Enter: Iterations, Refresh Seconds\nDefault: 120, 5",
+            "120, 5"
+        ) || "120, 5";
+
 
         const parts = input.split(",");
 
         let LOOP = parseInt(parts[0].trim());
         let REFRESH_SECONDS = parseFloat(parts[1]?.trim());
 
-        if (!Number.isFinite(LOOP) || LOOP < 1) LOOP = 40;
+        if (!Number.isFinite(LOOP) || LOOP < 1) LOOP = 120;
         if (!Number.isFinite(REFRESH_SECONDS) || REFRESH_SECONDS < 1) REFRESH_SECONDS = 5;
 
         const REFRESH_MS = REFRESH_SECONDS * 1000;
