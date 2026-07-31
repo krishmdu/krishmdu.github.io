@@ -14,10 +14,10 @@
     // const REFRESH_MS = REFRESH_SECONDS * 1000;
 
     const input = prompt(
-    "Enter: Iterations, Refresh Seconds\nExample: 40, 5",
-    "40, 5"
-) || "40, 5";
-    
+        "Enter: Iterations, Refresh Seconds\nDefault: 40, 5",
+        "40, 5"
+    ) || "40, 5";
+
 
     const parts = input.split(",");
 
