@@ -14,8 +14,7 @@
     // const REFRESH_MS = REFRESH_SECONDS * 1000;
 
     const input = prompt(
-        "Enter: iterations, refresh seconds\nExample: 25, 5",
-        "20, 10", "Default: 40, 5"
+        "Enter: iterations, refresh seconds\nExample: 40, 5 (Defauly)"
     ) || "40, 5";
 
     const parts = input.split(",");
