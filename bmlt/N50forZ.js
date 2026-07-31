@@ -23,8 +23,8 @@
     let LOOP = parseInt(parts[0].trim());
     let REFRESH_SECONDS = parseFloat(parts[1]?.trim());
 
-    if (!Number.isFinite(LOOP) || LOOP < 1) LOOP = 20;
-    if (!Number.isFinite(REFRESH_SECONDS) || REFRESH_SECONDS < 1) REFRESH_SECONDS = 10;
+    if (!Number.isFinite(LOOP) || LOOP < 1) LOOP = 40;
+    if (!Number.isFinite(REFRESH_SECONDS) || REFRESH_SECONDS < 1) REFRESH_SECONDS = 5;
 
     const REFRESH_MS = REFRESH_SECONDS * 1000;
 
