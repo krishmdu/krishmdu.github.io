@@ -1,113 +1,98 @@
 (function () {
-    function showMessage(msg) {
+  const input = prompt(`Iterations,Refresh Seconds`, "12,10");
 
-        const old = document.getElementById("SpotDiffMessage");
-        if (old) old.remove();
+  let LOOP = 12;
+  let REFRESH = 10;
 
-        const box = document.createElement("div");
-        box.id = "SpotDiffMessage";
+  if (input) {
+    const p = input.split(",");
+    LOOP = parseInt(p[0]) || 12;
+    REFRESH = parseInt(p[1]) || 10;
+  }
 
-        box.innerHTML = msg;
+  let count = 0;
 
-        box.style.cssText = `
-        position:fixed;
-        top:20px;
-        right:20px;
-        max-width:420px;
-        padding:14px 18px;
-        background:#d32f2f;
-        color:white;
-        font:14px Arial,sans-serif;
-        border-radius:8px;
-        box-shadow:0 4px 12px rgba(0,0,0,.35);
-        z-index:2147483647;
-        white-space:pre-line;
-    `;
+  function getSpot(indexName) {
+    const row = [...document.querySelectorAll(".item")].find((r) => {
+      const n = r.querySelector(".name");
+      return n && n.innerText.trim() === indexName;
+    });
 
-        document.body.appendChild(box);
+    if (!row) return null;
 
-        setTimeout(() => {
-            box.remove();
-        }, 15000);
+    const lp = row.querySelector(".last-price");
+
+    if (!lp) return null;
+
+    return parseFloat(lp.innerText.replace(/,/g, ""));
+  }
+
+  function updateBadges() {
+    const niftySpot = getSpot("NIFTY 50");
+    const sensexSpot = getSpot("SENSEX");
+
+    document.querySelectorAll(".tradingsymbol").forEach((symbol) => {
+      const txt = symbol.innerText.replace(/\s+/g, " ").trim();
+
+      const m = txt.match(/^(NIFTY|SENSEX).*?(\d{5})\s+(CE|PE)$/i);
+
+      if (!m) return;
+
+      const index = m[1].toUpperCase();
+      const strike = parseInt(m[2]);
+      const type = m[3].toUpperCase();
+
+      let spot = null;
+
+      if (index === "NIFTY") spot = niftySpot;
+      else spot = sensexSpot;
+
+      if (!spot) return;
+
+      const diff = Math.round(strike - spot);
+
+      let badge = symbol.parentElement.querySelector(".SpotDiffBadge");
+
+      if (!badge) {
+        badge = document.createElement("span");
+
+        badge.className = "SpotDiffBadge";
+
+        badge.style.cssText = `
+display:inline-block;
+margin-left:8px;
+padding:2px 6px;
+font:700 11px Consolas,Arial;
+color:#fff;
+white-space:nowrap;
+vertical-align:middle;
+user-select:none;
+`;
+
+        symbol.insertAdjacentElement("afterend", badge);
+      }
+
+      badge.textContent = (diff >= 0 ? "+" : "") + diff;
+
+      if (type === "PE") {
+        badge.style.background = "#d32f2f";
+        badge.style.borderRadius = "14px";
+      } else {
+        badge.style.background = "#2e7d32";
+        badge.style.borderRadius = "3px";
+      }
+    });
+
+    count++;
+
+    if (count >= LOOP) {
+      clearInterval(timer);
+
+      location.reload();
     }
+  }
 
-    function () {
-        const LOOP =
-            parseInt(prompt("Update every 10 seconds.\nHow many updates?", "12")) || 12;
+  updateBadges();
 
-        let count = 0;
-
-        function getNiftySpot() {
-            const idx = [...document.querySelectorAll(".item")].find(x => {
-                const n = x.querySelector(".name");
-                return n && n.innerText.trim() === "NIFTY 50";
-            });
-
-            if (!idx) return null;
-
-            const lp = idx.querySelector(".last-price");
-            if (!lp) return null;
-
-            return parseFloat(lp.innerText.replace(/,/g, ""));
-        }
-
-        function updateBadges() {
-
-            const spot = getNiftySpot();
-            if (!spot) return;
-
-            // Remove old badges
-            document.querySelectorAll(".SpotDiffBadge").forEach(x => x.remove());
-
-            document.querySelectorAll("td.open.instrument").forEach(td => {
-
-                const symbol = td.querySelector(".tradingsymbol");
-                if (!symbol) return;
-
-                const txt = symbol.innerText.replace(/\s+/g, " ").trim();
-
-                const m = txt.match(/^NIFTY.*?(\d{5})\s+(PE|CE)$/i);
-                if (!m) return;
-
-                const strike = parseInt(m[1]);
-                const type = m[2].toUpperCase();
-
-                const diff = Math.round(strike - spot);
-
-                const badge = document.createElement("span");
-                badge.className = "SpotDiffBadge";
-
-                badge.textContent = (diff >= 0 ? "+" : "") + diff;
-
-                badge.style.display = "inline-block";
-                badge.style.marginLeft = "8px";
-                badge.style.padding = "2px 6px";
-                badge.style.font = "700 11px Consolas,Arial";
-                badge.style.color = "white";
-                badge.style.borderRadius = type === "PE" ? "14px" : "4px";
-                badge.style.whiteSpace = "nowrap";
-                badge.style.cursor = "default";
-                badge.style.verticalAlign = "middle";
-
-                if (type === "PE") {
-                    badge.style.background = "#d32f2f";
-                } else {
-                    badge.style.background = "#2e7d32";
-                }
-
-                symbol.insertAdjacentElement("afterend", badge);
-            });
-
-            count++;
-
-            if (count >= LOOP) {
-                clearInterval(timer);
-                location.reload();
-            }
-        }
-
-        updateBadges();
-
-        const timer = setInterval(updateBadges, 10000);
-
-    }) ();
+  const timer = setInterval(updateBadges, REFRESH * 1000);
+})();

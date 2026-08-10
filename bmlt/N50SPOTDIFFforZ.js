@@ -1,88 +1,86 @@
-(
-    function () {
-        const input = prompt(
-            "Enter: Iterations, Refresh Seconds\nDefault: 120, 5",
-            "120, 5"
-        ) || "120, 5";
+(function () {
+  const input =
+    prompt("Enter: Iterations, Refresh Seconds\nDefault: 120, 5", "120, 5") ||
+    "120, 5";
 
+  const parts = input.split(",");
 
-        const parts = input.split(",");
+  let LOOP = parseInt(parts[0].trim());
+  let REFRESH_SECONDS = parseFloat(parts[1]?.trim());
 
-        let LOOP = parseInt(parts[0].trim());
-        let REFRESH_SECONDS = parseFloat(parts[1]?.trim());
+  if (!Number.isFinite(LOOP) || LOOP < 1) LOOP = 120;
+  if (!Number.isFinite(REFRESH_SECONDS) || REFRESH_SECONDS < 1)
+    REFRESH_SECONDS = 5;
 
-        if (!Number.isFinite(LOOP) || LOOP < 1) LOOP = 120;
-        if (!Number.isFinite(REFRESH_SECONDS) || REFRESH_SECONDS < 1) REFRESH_SECONDS = 5;
+  const REFRESH_MS = REFRESH_SECONDS * 1000;
 
-        const REFRESH_MS = REFRESH_SECONDS * 1000;
+  let count = 0;
 
-        let count = 0;
+  let interactionRect = null;
+  let badgesLeft = false;
 
-        let interactionRect = null;
-        let badgesLeft = false;
+  function getNIFTYSpot() {
+    const idx = [...document.querySelectorAll(".item")].find((x) => {
+      const n = x.querySelector(".name");
+      return n && n.innerText.replace(/\s+/g, " ").trim() === "NIFTY 50";
+    });
 
-        function getNIFTYSpot() {
-            const idx = [...document.querySelectorAll(".item")].find((x) => {
-                const n = x.querySelector(".name");
-                return n && n.innerText.replace(/\s+/g, " ").trim() === "NIFTY 50";
-            });
+    if (!idx) return null;
 
-            if (!idx) return null;
+    const lp = idx.querySelector(".last-price");
+    if (!lp) return null;
 
-            const lp = idx.querySelector(".last-price");
-            if (!lp) return null;
+    return parseFloat(lp.innerText.replace(/,/g, ""));
+  }
 
-            return parseFloat(lp.innerText.replace(/,/g, ""));
-        }
+  function moveAllBadges(toLeft) {
+    document.querySelectorAll(".NIFTYDiff").forEach((badge) => {
+      if (toLeft) {
+        badge.style.left = "-55px";
+        badge.style.right = "auto";
+        badge.style.marginLeft = "0";
+        badge.style.marginRight = "0";
+      } else {
+        badge.style.left = "100%";
+        badge.style.right = "auto";
+        badge.style.marginLeft = "8px";
+        badge.style.marginRight = "0";
+      }
+    });
+  }
 
-        function moveAllBadges(toLeft) {
-            document.querySelectorAll(".NIFTYDiff").forEach((badge) => {
-                if (toLeft) {
-                    badge.style.left = "-55px";
-                    badge.style.right = "auto";
-                    badge.style.marginLeft = "0";
-                    badge.style.marginRight = "0";
-                } else {
-                    badge.style.left = "100%";
-                    badge.style.right = "auto";
-                    badge.style.marginLeft = "8px";
-                    badge.style.marginRight = "0";
-                }
-            });
-        }
+  function updateBadges() {
+    const spot = getNIFTYSpot();
 
-        function updateBadges() {
-            const spot = getNIFTYSpot();
+    if (!spot) return;
 
-            if (!spot) return;
+    document.querySelectorAll(".item .name").forEach((name) => {
+      const txt = name.innerText.replace(/\s+/g, " ").trim();
 
-            document.querySelectorAll(".item .name").forEach((name) => {
-                const txt = name.innerText.replace(/\s+/g, " ").trim();
+      const m = txt.match(/^NIFTY\b.*?(\d{5})\s+(PE|CE)$/i);
+      console.log(txt, m);
 
-                const m = txt.match(/^NIFTY\b.*?(\d{5})\s+(PE|CE)$/i);
-                console.log(txt, m);
+      if (!m) return;
 
-                if (!m) return;
+      const strike = parseInt(m[1]);
 
-                const strike = parseInt(m[1]);
+      const type = m[2].toUpperCase();
 
-                const type = m[2].toUpperCase();
+      // Strike relative to Spot
+      const diff = Math.round(strike - spot);
 
-                // Strike relative to Spot
-                const diff = Math.round(strike - spot);
+      const holder = name.parentElement;
 
-                const holder = name.parentElement;
+      holder.style.position = "relative";
 
-                holder.style.position = "relative";
+      let badge = holder.querySelector(".NIFTYDiff");
 
-                let badge = holder.querySelector(".NIFTYDiff");
+      if (!badge) {
+        badge = document.createElement("span");
 
-                if (!badge) {
-                    badge = document.createElement("span");
+        badge.className = "NIFTYDiff";
 
-                    badge.className = "NIFTYDiff";
-
-                    badge.style.cssText = `
+        badge.style.cssText = `
 position:absolute;
 left:100%;
 margin-left:6px;
@@ -100,89 +98,72 @@ transition:left .25s ease,right .25s ease;
 z-index:999999;
 `;
 
-                    holder.appendChild(badge);
-                    if (!interactionRect) {
-
-                        interactionRect = {
-
-                            left: 0,
-                            top: 0,
-                            right: 0,
-                            bottom: 0
-
-                        };
-
-                    }
-
-                }
-
-                if (type === "PE") {
-                    badge.style.background = "#d32f2f";
-                    badge.style.borderRadius = "14px";
-                } else {
-                    badge.style.background = "#2e7d32";
-                    badge.style.borderRadius = "3px";
-                }
-
-                badge.textContent = (diff >= 0 ? "+" : "") + diff;
-            });
-
-            const firstBadge = document.querySelector(".NIFTYDiff");
-
-            if (firstBadge) {
-
-                const r = firstBadge.getBoundingClientRect();
-
-                interactionRect = {
-
-                    left: r.left - 30,
-                    right: r.right + 170,
-                    top: 0,
-                    bottom: window.innerHeight
-
-                };
-
-            }
-            count++;
-
-            if (count >= LOOP) {
-                clearInterval(timer);
-
-                location.reload();
-            }
+        holder.appendChild(badge);
+        if (!interactionRect) {
+          interactionRect = {
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
+          };
         }
+      }
 
-        updateBadges();
+      if (type === "PE") {
+        badge.style.background = "#d32f2f";
+        badge.style.borderRadius = "14px";
+      } else {
+        badge.style.background = "#2e7d32";
+        badge.style.borderRadius = "3px";
+      }
 
-        document.addEventListener("mousemove", (e) => {
+      badge.textContent = (diff >= 0 ? "+" : "") + diff;
+    });
 
-            if (!interactionRect)
-                return;
+    const firstBadge = document.querySelector(".NIFTYDiff");
 
-            const inside =
+    if (firstBadge) {
+      const r = firstBadge.getBoundingClientRect();
 
-                e.clientX >= interactionRect.left &&
-                e.clientX <= interactionRect.right &&
-                e.clientY >= interactionRect.top &&
-                e.clientY <= interactionRect.bottom;
+      interactionRect = {
+        left: r.left - 30,
+        right: r.right + 170,
+        top: 0,
+        bottom: window.innerHeight,
+      };
+    }
+    count++;
 
-            if (inside && !badgesLeft) {
+    if (count >= LOOP) {
+      clearInterval(timer);
 
-                badgesLeft = true;
+      location.reload();
+    }
+  }
 
-                moveAllBadges(true);
+  updateBadges();
 
-            }
+  document.addEventListener("mousemove", (e) => {
+    if (!interactionRect) return;
 
-            if (!inside && badgesLeft) {
+    const inside =
+      e.clientX >= interactionRect.left &&
+      e.clientX <= interactionRect.right &&
+      e.clientY >= interactionRect.top &&
+      e.clientY <= interactionRect.bottom;
 
-                badgesLeft = false;
+    if (inside && !badgesLeft) {
+      badgesLeft = true;
 
-                moveAllBadges(false);
+      moveAllBadges(true);
+    }
 
-            }
+    if (!inside && badgesLeft) {
+      badgesLeft = false;
 
-        });
+      moveAllBadges(false);
+    }
+  });
 
-        const timer = setInterval(updateBadges, REFRESH_MS);
-    })();
+  const timer = setInterval(updateBadges, REFRESH_MS);
+})();
