@@ -1,5 +1,5 @@
 (function () {
-  const input = prompt(`Iterations,Refresh Seconds`, "12,10");
+  const input = prompt(`Iterations,Refresh Seconds`, "50,10");
 
   let LOOP = 50;
   let REFRESH = 10;
