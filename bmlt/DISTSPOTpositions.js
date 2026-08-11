@@ -1,12 +1,12 @@
 (function () {
   const input = prompt(`Iterations,Refresh Seconds`, "12,10");
 
-  let LOOP = 12;
+  let LOOP = 50;
   let REFRESH = 10;
 
   if (input) {
     const p = input.split(",");
-    LOOP = parseInt(p[0]) || 12;
+    LOOP = parseInt(p[0]) || 50;
     REFRESH = parseInt(p[1]) || 10;
   }
 
@@ -61,8 +61,8 @@
         badge.style.cssText = `
 display:inline-block;
 margin-left:8px;
-padding:2px 6px;
-font:700 11px Consolas,Arial;
+padding:3px 8px;
+font:700 14px Consolas,Arial;
 color:#fff;
 white-space:nowrap;
 vertical-align:middle;
