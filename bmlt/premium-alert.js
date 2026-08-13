@@ -6,7 +6,7 @@
    ************************************************************/
 
   const CONFIG = {
-    THRESHOLD: 6,
+    THRESHOLD: 4.6,
 
     SCAN_INTERVAL: 5000,
 
