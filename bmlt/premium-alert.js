@@ -6,13 +6,12 @@
    ************************************************************/
 
   const CONFIG = {
-    THRESHOLD: 4.6,
+    THRESHOLD: Number(prompt("Alert when premium crosses above:", "12")) || 12,
 
     SCAN_INTERVAL: 5000,
 
     FLASH_INTERVAL: 500,
   };
-
   /************************************************************
    * Internal state
    ************************************************************/
