@@ -1,179 +1,245 @@
-/*
-=========================================================
-SENSEX PREMIUM ALERT
----------------------------------------------------------
-Author : Krish
-Purpose:
-    Alert when any SENSEX option premium crosses a threshold
-    for the FIRST time.
-
-Features
---------
-✓ Configurable Threshold
-✓ Sound Alert
-✓ Flash Row continuously while premium > threshold
-✓ One-time alert until premium falls below threshold
-✓ Lightweight
-=========================================================
-*/
-
 (function () {
 
-    "use strict";
+"use strict";
 
-    /*******************************************************
-     * CONFIGURATION
-     *******************************************************/
+/************************************************************
+ * Configuration
+ ************************************************************/
 
-    const THRESHOLD = 10.5;          // <<< CHANGE ONLY THIS VALUE
+const THRESHOLD = 10;          // <<< CHANGE ONLY THIS
+const POLL_INTERVAL = 500;     // milliseconds
+const WATCH_ONLY_SENSEX = true;
 
-    const CHECK_INTERVAL = 1000;   // milliseconds
 
-    const FLASH_CLASS = "kkPremiumFlash";
+/************************************************************
+ * Internal state
+ ************************************************************/
 
-    /*******************************************************
-     * CSS
-     *******************************************************/
+const alerted = new Map();
 
-    if (!document.getElementById("kkPremiumStyle")) {
 
-        const style = document.createElement("style");
+/************************************************************
+ * Inject flashing CSS
+ ************************************************************/
 
-        style.id = "kkPremiumStyle";
+const style = document.createElement("style");
 
-        style.textContent = `
-            .${FLASH_CLASS}{
-                animation:kkFlash .8s infinite;
-            }
+style.textContent = `
 
-            @keyframes kkFlash{
-                0%   { background:#ff4d4d; color:white; }
-                50%  { background:#fff56b; color:black; }
-                100% { background:#ff4d4d; color:white; }
-            }
-        `;
+.kk-premium-alert{
 
-        document.head.appendChild(style);
+    animation: kkFlash .8s infinite !important;
 
+}
+
+@keyframes kkFlash{
+
+    0%{
+        background:#ff4d4d;
     }
 
-    /*******************************************************
-     * ALERT SOUND
-     *******************************************************/
+    50%{
+        background:#fff36b;
+    }
 
-    function beep() {
+    100%{
+        background:#ff4d4d;
+    }
 
-        const ctx =
-            new (window.AudioContext || window.webkitAudioContext)();
+}
 
-        const osc = ctx.createOscillator();
+`;
 
-        const gain = ctx.createGain();
+document.head.appendChild(style);
 
-        osc.type = "sine";
 
-        osc.frequency.value = 900;
+/************************************************************
+ * Play sound once
+ ************************************************************/
 
-        osc.connect(gain);
+function playAlert(){
 
-        gain.connect(ctx.destination);
+    const ctx =
+        new (window.AudioContext ||
+             window.webkitAudioContext)();
 
-        osc.start();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
 
-        gain.gain.exponentialRampToValueAtTime(
-            0.00001,
-            ctx.currentTime + 0.35
+    osc.type = "sine";
+    osc.frequency.value = 880;
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    gain.gain.value = 0.20;
+
+    osc.start();
+
+    gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        ctx.currentTime + 0.30
+    );
+
+    osc.stop(ctx.currentTime + 0.30);
+
+}
+
+
+/************************************************************
+ * Extract premium
+ ************************************************************/
+
+function getPremium(row){
+
+    const span =
+        row.querySelector(".last-price");
+
+    if(!span)
+        return null;
+
+    const value =
+        parseFloat(
+            span.innerText
+                .replace(/,/g,"")
+                .trim()
         );
 
-        osc.stop(ctx.currentTime + 0.35);
+    return isNaN(value)
+        ? null
+        : value;
 
-    }
+}
 
-    /*******************************************************
-     * STATE
-     *******************************************************/
 
-    const alerted = new Set();
+/************************************************************
+ * Instrument name
+ ************************************************************/
 
-    /*******************************************************
-     * MAIN LOOP
-     *******************************************************/
+function getName(row){
 
-    function scan() {
+    return row.querySelector(".name")
+        ?.innerText
+        ?.trim() || "";
 
-        document.querySelectorAll("tr").forEach(row => {
+}
 
-            const txt = row.innerText;
 
-            if (!txt.includes("SENSEX"))
+/************************************************************
+ * Scan MarketWatch
+ ************************************************************/
+
+function scan(){
+
+    const rows =
+        document.querySelectorAll(
+            ".marketwatch .items .item-wrapper"
+        );
+
+    rows.forEach(row=>{
+
+        const id =
+            row.dataset.id;
+
+        if(!id)
+            return;
+
+        const name =
+            getName(row);
+
+        if(WATCH_ONLY_SENSEX){
+
+            if(!name.includes("SENSEX"))
                 return;
 
-            if (!(txt.includes("CE") || txt.includes("PE")))
+            if(
+                !name.includes("CE") &&
+                !name.includes("PE")
+            )
                 return;
 
-            //------------------------------------------------
-            // Extract premium
-            //------------------------------------------------
+        }
 
-            const nums = txt.match(/\d+(\.\d+)?/g);
+        const premium =
+            getPremium(row);
 
-            if (!nums)
-                return;
+        if(premium==null)
+            return;
 
-            const premium = parseFloat(nums[0]);
+        const already =
+            alerted.get(id) || false;
 
-            const symbol =
-                txt.match(/SENSEX\S+/)?.[0] || txt;
 
-            //------------------------------------------------
-            // Above Threshold
-            //------------------------------------------------
+        //--------------------------------------------------
+        // Crossed threshold
+        //--------------------------------------------------
 
-            if (premium >= THRESHOLD) {
+        if(premium >= THRESHOLD){
 
-                row.classList.add(FLASH_CLASS);
+            row.classList.add(
+                "kk-premium-alert"
+            );
 
-                if (!alerted.has(symbol)) {
+            if(!already){
 
-                    alerted.add(symbol);
+                alerted.set(id,true);
 
-                    beep();
+                console.log(
+                    "ALERT",
+                    name,
+                    premium
+                );
 
-                    console.log(
-                        "ALERT:",
-                        symbol,
-                        premium
-                    );
-
-                }
+                playAlert();
 
             }
 
-            //------------------------------------------------
-            // Back below threshold
-            //------------------------------------------------
+        }
 
-            else {
+        //--------------------------------------------------
+        // Came below threshold
+        //--------------------------------------------------
 
-                row.classList.remove(FLASH_CLASS);
+        else{
 
-                alerted.delete(symbol);
+            row.classList.remove(
+                "kk-premium-alert"
+            );
 
-            }
+            alerted.set(id,false);
 
-        });
+        }
 
-    }
+    });
 
-    /*******************************************************
-     * START
-     *******************************************************/
+}
 
-    setInterval(scan, CHECK_INTERVAL);
 
-    console.log(
-        "SENSEX Premium Alert Started.",
-        "Threshold =", THRESHOLD
-    );
+/************************************************************
+ * Start monitor
+ ************************************************************/
+
+if(window.__kkPremiumMonitor){
+
+    clearInterval(window.__kkPremiumMonitor);
+
+}
+
+window.__kkPremiumMonitor =
+    setInterval(scan,POLL_INTERVAL);
+
+console.clear();
+
+console.log("");
+
+console.log("===================================");
+
+console.log(" Premium Monitor Started");
+
+console.log(" Threshold :",THRESHOLD);
+
+console.log(" Interval  :",POLL_INTERVAL,"ms");
+
+console.log("===================================");
 
 })();
