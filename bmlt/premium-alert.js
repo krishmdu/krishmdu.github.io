@@ -31,7 +31,7 @@
 
 .kr-alert-row{
 
-    background: yellow !important;
+    background: #fff176 !important;   /* Light Yellow */
 
     color: black !important;
 
