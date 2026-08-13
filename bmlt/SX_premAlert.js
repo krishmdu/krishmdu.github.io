@@ -128,6 +128,39 @@
    * Start
    ************************************************************/
 
+  // Check whether SENSEX Spot exists in watchlist
+  const sensexExists = [
+    ...document.querySelectorAll(".marketwatch-content .name"),
+  ].some((n) => n.innerText.trim() === "SENSEX");
+
+  if (!sensexExists) {
+    const box = document.createElement("div");
+
+    box.innerHTML =
+      "❌ <b>SENSEX Spot is not available.</b><br><br>" +
+      "Please add <b>SENSEX</b> to the watchlist and run the bookmarklet again.";
+
+    box.style.cssText = `
+position:fixed;
+top:20px;
+right:20px;
+padding:16px 20px;
+max-width:360px;
+background:#d32f2f;
+color:white;
+font:14px Arial;
+border-radius:8px;
+box-shadow:0 4px 12px rgba(0,0,0,.35);
+z-index:2147483647;
+`;
+
+    document.body.appendChild(box);
+
+    setTimeout(() => box.remove(), 30000);
+
+    return;
+  }
+
   console.clear();
 
   console.log("--------------------------------");
