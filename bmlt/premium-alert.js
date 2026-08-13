@@ -19,7 +19,7 @@
 
   const alerted = new Set();
 
-  let flashTimer = null;
+  // let flashTimer = null;
 
   /************************************************************
    * Inject CSS
@@ -31,9 +31,7 @@
 
 .kr-alert-row{
 
-    background: #fff176 !important;   /* Light Yellow */
-
-    color: black !important;
+    background:#fffde7 !important;
 
 }
 
@@ -59,20 +57,20 @@
     osc.stop(ctx.currentTime + 0.25);
   }
 
-  /************************************************************
-   * Flash rows
-   ************************************************************/
+  // /************************************************************
+  //  * Flash rows
+  //  ************************************************************/
 
-  function startFlash() {
-    if (flashTimer) return;
+  // function startFlash() {
+  //   if (flashTimer) return;
 
-    flashTimer = setInterval(() => {
-      document.querySelectorAll(".kr-alert-row").forEach((r) => {
-        r.style.visibility =
-          r.style.visibility === "hidden" ? "visible" : "hidden";
-      });
-    }, CONFIG.FLASH_INTERVAL);
-  }
+  //   flashTimer = setInterval(() => {
+  //     document.querySelectorAll(".kr-alert-row").forEach((r) => {
+  //       r.style.visibility =
+  //         r.style.visibility === "hidden" ? "visible" : "hidden";
+  //     });
+  //   }, CONFIG.FLASH_INTERVAL);
+  // }
 
   /************************************************************
    * Scan Watchlist
@@ -90,7 +88,7 @@
 
       const name = info.querySelector(".name")?.innerText.trim() || "";
 
-      if (!name.startsWith("SENSEX")) return;
+      if (!/^SENSEX.*(CE|PE)$/i.test(name)) return;
 
       const txt = info.querySelector(".last-price")?.innerText.trim();
 
@@ -138,5 +136,5 @@
 
   setInterval(scan, CONFIG.SCAN_INTERVAL);
 
-  startFlash();
+  // startFlash();
 })();
