@@ -31,57 +31,75 @@
     const niftySpot = getSpot("NIFTY 50");
     const sensexSpot = getSpot("SENSEX");
 
-    document.querySelectorAll(".tradingsymbol").forEach((symbol) => {
-      const txt = symbol.innerText.replace(/\s+/g, " ").trim();
+    // Remove badges from closed positions (if any exist)
+    document
+      .querySelectorAll("td.closed.instrument .SpotDiffBadge")
+      .forEach((b) => b.remove());
 
-      const m = txt.match(/^(NIFTY|SENSEX).*?(\d{5})\s+(CE|PE)$/i);
+    // ONLY ACTIVE POSITIONS
+    document
+      .querySelectorAll("td.open.instrument .tradingsymbol")
+      .forEach((symbol) => {
+        const txt = symbol.innerText.replace(/\s+/g, " ").trim();
 
-      if (!m) return;
+        const m = txt.match(/^(NIFTY|SENSEX).*?(\d{5})\s+(CE|PE)$/i);
 
-      const index = m[1].toUpperCase();
-      const strike = parseInt(m[2]);
-      const type = m[3].toUpperCase();
+        if (!m) return;
 
-      let spot = null;
+        const index = m[1].toUpperCase();
+        const strike = parseInt(m[2]);
+        const type = m[3].toUpperCase();
 
-      if (index === "NIFTY") spot = niftySpot;
-      else spot = sensexSpot;
+        let spot = null;
 
-      if (!spot) return;
+        if (index === "NIFTY") spot = niftySpot;
+        else spot = sensexSpot;
 
-      const diff = Math.round(strike - spot);
+        if (!spot) return;
 
-      let badge = symbol.parentElement.querySelector(".SpotDiffBadge");
+        const diff = Math.round(strike - spot);
 
-      if (!badge) {
-        badge = document.createElement("span");
+        // Instrument cell
+        const cell = symbol.closest("td.open.instrument");
 
-        badge.className = "SpotDiffBadge";
+        if (!cell) return;
 
-        badge.style.cssText = `
-display:inline-block;
-margin-left:8px;
+        cell.style.position = "relative";
+
+        let badge = cell.querySelector(".SpotDiffBadge");
+
+        if (!badge) {
+          badge = document.createElement("span");
+
+          badge.className = "SpotDiffBadge";
+
+          badge.style.cssText = `
+position:absolute;
+right:8px;
+top:50%;
+transform:translateY(-50%);
 padding:3px 8px;
 font:700 14px Consolas,Arial;
 color:#fff;
 white-space:nowrap;
-vertical-align:middle;
 user-select:none;
+pointer-events:none;
+z-index:999;
 `;
 
-        symbol.insertAdjacentElement("afterend", badge);
-      }
+          cell.appendChild(badge);
+        }
 
-      badge.textContent = (diff >= 0 ? "+" : "") + diff;
+        badge.textContent = (diff >= 0 ? "+" : "") + diff;
 
-      if (type === "PE") {
-        badge.style.background = "#d32f2f";
-        badge.style.borderRadius = "14px";
-      } else {
-        badge.style.background = "#2e7d32";
-        badge.style.borderRadius = "3px";
-      }
-    });
+        if (type === "PE") {
+          badge.style.background = "#d32f2f";
+          badge.style.borderRadius = "14px";
+        } else {
+          badge.style.background = "#2e7d32";
+          badge.style.borderRadius = "3px";
+        }
+      });
 
     count++;
 
