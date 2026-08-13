@@ -28,10 +28,10 @@
 
   style.textContent = `
 
-.kr-alert-row{
-
-    background:#fff9c4 !important;
-
+.kr-alert-row,
+.kr-alert-row .item,
+.kr-alert-row .item-info{
+    background:#fff59d !important;
 }
 
 `;
