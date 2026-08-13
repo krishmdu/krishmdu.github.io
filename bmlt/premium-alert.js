@@ -1,186 +1,142 @@
 (function () {
+  "use strict";
 
-    "use strict";
+  /************************************************************
+   * Configuration
+   ************************************************************/
 
-    /************************************************************
-     * Configuration
-     ************************************************************/
+  const CONFIG = {
+    THRESHOLD: 6,
 
-    const CONFIG = {
+    SCAN_INTERVAL: 5000,
 
-        THRESHOLD: 6,
+    FLASH_INTERVAL: 500,
+  };
 
-        SCAN_INTERVAL: 5000,
+  /************************************************************
+   * Internal state
+   ************************************************************/
 
-        FLASH_INTERVAL: 500
+  const alerted = new Set();
 
-    };
+  let flashTimer = null;
 
+  /************************************************************
+   * Inject CSS
+   ************************************************************/
 
-    /************************************************************
-     * Internal state
-     ************************************************************/
+  const style = document.createElement("style");
 
-    const alerted = new Set();
-
-    let flashTimer = null;
-
-
-    /************************************************************
-     * Inject CSS
-     ************************************************************/
-
-    const style = document.createElement("style");
-
-    style.textContent = `
+  style.textContent = `
 
 .kr-alert-row{
 
-    background:#ff3030 !important;
+    background: yellow !important;
 
-    color:white !important;
+    color: black !important;
 
 }
 
 `;
 
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 
+  /************************************************************
+   * Beep
+   ************************************************************/
 
-    /************************************************************
-     * Beep
-     ************************************************************/
+  function beep() {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-    function beep(){
+    const osc = ctx.createOscillator();
 
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    osc.frequency.value = 900;
 
-        const osc = ctx.createOscillator();
+    osc.connect(ctx.destination);
 
-        osc.frequency.value = 900;
+    osc.start();
 
-        osc.connect(ctx.destination);
+    osc.stop(ctx.currentTime + 0.25);
+  }
 
-        osc.start();
+  /************************************************************
+   * Flash rows
+   ************************************************************/
 
-        osc.stop(ctx.currentTime + 0.25);
+  function startFlash() {
+    if (flashTimer) return;
 
-    }
+    flashTimer = setInterval(() => {
+      document.querySelectorAll(".kr-alert-row").forEach((r) => {
+        r.style.visibility =
+          r.style.visibility === "hidden" ? "visible" : "hidden";
+      });
+    }, CONFIG.FLASH_INTERVAL);
+  }
 
+  /************************************************************
+   * Scan Watchlist
+   ************************************************************/
 
-    /************************************************************
-     * Flash rows
-     ************************************************************/
+  function scan() {
+    const rows = document.querySelectorAll(
+      ".marketwatch-content .item-wrapper.draggable-item",
+    );
 
-    function startFlash(){
+    rows.forEach((row) => {
+      const info = row.querySelector(".item-info");
 
-        if(flashTimer) return;
+      if (!info) return;
 
-        flashTimer = setInterval(()=>{
+      const name = info.querySelector(".name")?.innerText.trim() || "";
 
-            document
-                .querySelectorAll(".kr-alert-row")
-                .forEach(r=>{
+      if (!name.startsWith("SENSEX")) return;
 
-                    r.style.visibility =
-                        r.style.visibility==="hidden"
-                        ?"visible"
-                        :"hidden";
+      const txt = info.querySelector(".last-price")?.innerText.trim();
 
-                });
+      if (!txt) return;
 
-        },CONFIG.FLASH_INTERVAL);
+      const premium = parseFloat(txt.replace(/,/g, ""));
 
-    }
+      if (isNaN(premium)) return;
 
+      if (premium >= CONFIG.THRESHOLD) {
+        if (!alerted.has(name)) {
+          alerted.add(name);
 
-    /************************************************************
-     * Scan Watchlist
-     ************************************************************/
+          console.log("ALERT:", name, premium);
 
-    function scan(){
+          beep();
+        }
 
-        const rows =
-            document.querySelectorAll(
-                ".marketwatch-content .item-wrapper.draggable-item"
-            );
+        row.classList.add("kr-alert-row");
+      } else {
+        alerted.delete(name);
 
-        rows.forEach(row=>{
+        row.classList.remove("kr-alert-row");
 
-            const info =
-                row.querySelector(".item-info");
+        row.style.visibility = "visible";
+      }
+    });
+  }
 
-            if(!info) return;
+  /************************************************************
+   * Start
+   ************************************************************/
 
-            const name =
-                info.querySelector(".name")?.innerText.trim() || "";
+  console.clear();
 
-            if(!name.startsWith("SENSEX"))
-                return;
+  console.log("--------------------------------");
 
-            const txt =
-                info.querySelector(".last-price")?.innerText.trim();
+  console.log("SENSEX Premium Alert Started");
 
-            if(!txt) return;
+  console.log("Threshold :", CONFIG.THRESHOLD);
 
-            const premium =
-                parseFloat(txt.replace(/,/g,""));
+  console.log("--------------------------------");
 
-            if(isNaN(premium))
-                return;
+  scan();
 
-            if(premium>=CONFIG.THRESHOLD){
+  setInterval(scan, CONFIG.SCAN_INTERVAL);
 
-                if(!alerted.has(name)){
-
-                    alerted.add(name);
-
-                    console.log(
-                        "ALERT:",
-                        name,
-                        premium
-                    );
-
-                    beep();
-
-                }
-
-                row.classList.add("kr-alert-row");
-
-            }
-            else{
-
-                alerted.delete(name);
-
-                row.classList.remove("kr-alert-row");
-
-                row.style.visibility="visible";
-
-            }
-
-        });
-
-    }
-
-
-    /************************************************************
-     * Start
-     ************************************************************/
-
-    console.clear();
-
-    console.log("--------------------------------");
-
-    console.log("SENSEX Premium Alert Started");
-
-    console.log("Threshold :",CONFIG.THRESHOLD);
-
-    console.log("--------------------------------");
-
-    scan();
-
-    setInterval(scan,CONFIG.SCAN_INTERVAL);
-
-    startFlash();
-
+  startFlash();
 })();
