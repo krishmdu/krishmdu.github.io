@@ -31,7 +31,7 @@
 
 .kr-alert-row{
 
-    background:#fffde7 !important;
+    background:#fff9c4 !important;
 
 }
 
