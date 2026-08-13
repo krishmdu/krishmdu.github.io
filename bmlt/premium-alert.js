@@ -77,28 +77,40 @@
    ************************************************************/
 
   function scan() {
-    const rows = document.querySelectorAll(
-      ".marketwatch-content .item-wrapper.draggable-item",
-    );
+    // Scan ONLY the Market Watch area
+    const watchlist = document.querySelector(".marketwatch-content");
+
+    if (!watchlist) return;
+
+    // Every instrument row in watchlist
+    const rows = watchlist.querySelectorAll(".item-wrapper.draggable-item");
 
     rows.forEach((row) => {
       const info = row.querySelector(".item-info");
-
       if (!info) return;
 
+      // Instrument name
       const name = info.querySelector(".name")?.innerText.trim() || "";
 
-      if (!/^SENSEX.*(CE|PE)$/i.test(name)) return;
+      // Ignore Spot SENSEX
+      // Match only option contracts
+      if (!/^SENSEX\s+\d+.*\b(CE|PE)$/i.test(name)) return;
 
-      const txt = info.querySelector(".last-price")?.innerText.trim();
+      // Price
+      const priceElem = info.querySelector(".last-price");
 
-      if (!txt) return;
+      if (!priceElem) return;
 
-      const premium = parseFloat(txt.replace(/,/g, ""));
+      const premium = parseFloat(
+        priceElem.textContent.replace(/,/g, "").trim(),
+      );
 
       if (isNaN(premium)) return;
 
+      // Highlight while premium >= threshold
       if (premium >= CONFIG.THRESHOLD) {
+        row.classList.add("kr-alert-row");
+
         if (!alerted.has(name)) {
           alerted.add(name);
 
@@ -106,18 +118,13 @@
 
           beep();
         }
-
-        row.classList.add("kr-alert-row");
       } else {
-        alerted.delete(name);
-
         row.classList.remove("kr-alert-row");
 
-        row.style.visibility = "visible";
+        alerted.delete(name);
       }
     });
   }
-
   /************************************************************
    * Start
    ************************************************************/
