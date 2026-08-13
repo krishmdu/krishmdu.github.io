@@ -1,6 +1,22 @@
 (function () {
   "use strict";
 
+  //==========================================================
+  // Check if SENSEX Spot exists in the watchlist
+  //==========================================================
+
+  const sensexExists = [
+    ...document.querySelectorAll(".marketwatch-content .name"),
+  ].some((n) => n.innerText.trim() === "SENSEX");
+
+  if (!sensexExists) {
+    alert(
+      "❌ SENSEX Spot is not available in the Watchlist.\n\n" +
+        "Please add SENSEX to the watchlist and run the bookmarklet again.",
+    );
+    return;
+  }
+
   /************************************************************
    * Configuration
    ************************************************************/
@@ -12,6 +28,7 @@
 
     FLASH_INTERVAL: 500,
   };
+
   /************************************************************
    * Internal state
    ************************************************************/
