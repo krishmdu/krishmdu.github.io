@@ -1,13 +1,31 @@
 (function () {
   "use strict";
 
+  //==========================================================
+  // Check if NIFTY 50 Spot exists in the watchlist
+  //==========================================================
+
+  const niftyExists = [
+    ...document.querySelectorAll(".marketwatch-content .name"),
+  ].some((n) => n.innerText.trim() === "NIFTY 50");
+
+  if (!niftyExists) {
+    alert(
+      "❌ NIFTY 50 Spot is not available in the Watchlist.\n\n" +
+        "Please add NIFTY 50 to the watchlist and run the bookmarklet again.",
+    );
+    return;
+  }
+
   /************************************************************
    * Configuration
    ************************************************************/
+
   const CONFIG = {
     THRESHOLD: Number(prompt("Alert when premium crosses above:", "12")) || 12,
 
     SCAN_INTERVAL: 5000,
+
     FLASH_INTERVAL: 500,
   };
 
