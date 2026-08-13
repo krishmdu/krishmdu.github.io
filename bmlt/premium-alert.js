@@ -25,7 +25,7 @@ Features
      * CONFIGURATION
      *******************************************************/
 
-    const THRESHOLD = 11;          // <<< CHANGE ONLY THIS VALUE
+    const THRESHOLD = 10.5;          // <<< CHANGE ONLY THIS VALUE
 
     const CHECK_INTERVAL = 1000;   // milliseconds
 
