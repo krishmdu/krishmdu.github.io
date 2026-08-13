@@ -1,245 +1,186 @@
 (function () {
 
-"use strict";
+    "use strict";
 
-/************************************************************
- * Configuration
- ************************************************************/
+    /************************************************************
+     * Configuration
+     ************************************************************/
 
-const THRESHOLD = 10;          // <<< CHANGE ONLY THIS
-const POLL_INTERVAL = 500;     // milliseconds
-const WATCH_ONLY_SENSEX = true;
+    const CONFIG = {
+
+        THRESHOLD: 6,
+
+        SCAN_INTERVAL: 5000,
+
+        FLASH_INTERVAL: 500
+
+    };
 
 
-/************************************************************
- * Internal state
- ************************************************************/
+    /************************************************************
+     * Internal state
+     ************************************************************/
 
-const alerted = new Map();
+    const alerted = new Set();
+
+    let flashTimer = null;
 
 
-/************************************************************
- * Inject flashing CSS
- ************************************************************/
+    /************************************************************
+     * Inject CSS
+     ************************************************************/
 
-const style = document.createElement("style");
+    const style = document.createElement("style");
 
-style.textContent = `
+    style.textContent = `
 
-.kk-premium-alert{
+.kr-alert-row{
 
-    animation: kkFlash .8s infinite !important;
+    background:#ff3030 !important;
 
-}
-
-@keyframes kkFlash{
-
-    0%{
-        background:#ff4d4d;
-    }
-
-    50%{
-        background:#fff36b;
-    }
-
-    100%{
-        background:#ff4d4d;
-    }
+    color:white !important;
 
 }
 
 `;
 
-document.head.appendChild(style);
+    document.head.appendChild(style);
 
 
-/************************************************************
- * Play sound once
- ************************************************************/
+    /************************************************************
+     * Beep
+     ************************************************************/
 
-function playAlert(){
+    function beep(){
 
-    const ctx =
-        new (window.AudioContext ||
-             window.webkitAudioContext)();
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+        const osc = ctx.createOscillator();
 
-    osc.type = "sine";
-    osc.frequency.value = 880;
+        osc.frequency.value = 900;
 
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+        osc.connect(ctx.destination);
 
-    gain.gain.value = 0.20;
+        osc.start();
 
-    osc.start();
+        osc.stop(ctx.currentTime + 0.25);
 
-    gain.gain.exponentialRampToValueAtTime(
-        0.0001,
-        ctx.currentTime + 0.30
-    );
-
-    osc.stop(ctx.currentTime + 0.30);
-
-}
+    }
 
 
-/************************************************************
- * Extract premium
- ************************************************************/
+    /************************************************************
+     * Flash rows
+     ************************************************************/
 
-function getPremium(row){
+    function startFlash(){
 
-    const span =
-        row.querySelector(".last-price");
+        if(flashTimer) return;
 
-    if(!span)
-        return null;
+        flashTimer = setInterval(()=>{
 
-    const value =
-        parseFloat(
-            span.innerText
-                .replace(/,/g,"")
-                .trim()
-        );
+            document
+                .querySelectorAll(".kr-alert-row")
+                .forEach(r=>{
 
-    return isNaN(value)
-        ? null
-        : value;
+                    r.style.visibility =
+                        r.style.visibility==="hidden"
+                        ?"visible"
+                        :"hidden";
 
-}
+                });
 
+        },CONFIG.FLASH_INTERVAL);
 
-/************************************************************
- * Instrument name
- ************************************************************/
-
-function getName(row){
-
-    return row.querySelector(".name")
-        ?.innerText
-        ?.trim() || "";
-
-}
+    }
 
 
-/************************************************************
- * Scan MarketWatch
- ************************************************************/
+    /************************************************************
+     * Scan Watchlist
+     ************************************************************/
 
-function scan(){
+    function scan(){
 
-    const rows =
-        document.querySelectorAll(
-            ".marketwatch .items .item-wrapper"
-        );
-
-    rows.forEach(row=>{
-
-        const id =
-            row.dataset.id;
-
-        if(!id)
-            return;
-
-        const name =
-            getName(row);
-
-        if(WATCH_ONLY_SENSEX){
-
-            if(!name.includes("SENSEX"))
-                return;
-
-            if(
-                !name.includes("CE") &&
-                !name.includes("PE")
-            )
-                return;
-
-        }
-
-        const premium =
-            getPremium(row);
-
-        if(premium==null)
-            return;
-
-        const already =
-            alerted.get(id) || false;
-
-
-        //--------------------------------------------------
-        // Crossed threshold
-        //--------------------------------------------------
-
-        if(premium >= THRESHOLD){
-
-            row.classList.add(
-                "kk-premium-alert"
+        const rows =
+            document.querySelectorAll(
+                ".marketwatch-content .item-wrapper.draggable-item"
             );
 
-            if(!already){
+        rows.forEach(row=>{
 
-                alerted.set(id,true);
+            const info =
+                row.querySelector(".item-info");
 
-                console.log(
-                    "ALERT",
-                    name,
-                    premium
-                );
+            if(!info) return;
 
-                playAlert();
+            const name =
+                info.querySelector(".name")?.innerText.trim() || "";
+
+            if(!name.startsWith("SENSEX"))
+                return;
+
+            const txt =
+                info.querySelector(".last-price")?.innerText.trim();
+
+            if(!txt) return;
+
+            const premium =
+                parseFloat(txt.replace(/,/g,""));
+
+            if(isNaN(premium))
+                return;
+
+            if(premium>=CONFIG.THRESHOLD){
+
+                if(!alerted.has(name)){
+
+                    alerted.add(name);
+
+                    console.log(
+                        "ALERT:",
+                        name,
+                        premium
+                    );
+
+                    beep();
+
+                }
+
+                row.classList.add("kr-alert-row");
+
+            }
+            else{
+
+                alerted.delete(name);
+
+                row.classList.remove("kr-alert-row");
+
+                row.style.visibility="visible";
 
             }
 
-        }
+        });
 
-        //--------------------------------------------------
-        // Came below threshold
-        //--------------------------------------------------
-
-        else{
-
-            row.classList.remove(
-                "kk-premium-alert"
-            );
-
-            alerted.set(id,false);
-
-        }
-
-    });
-
-}
+    }
 
 
-/************************************************************
- * Start monitor
- ************************************************************/
+    /************************************************************
+     * Start
+     ************************************************************/
 
-if(window.__kkPremiumMonitor){
+    console.clear();
 
-    clearInterval(window.__kkPremiumMonitor);
+    console.log("--------------------------------");
 
-}
+    console.log("SENSEX Premium Alert Started");
 
-window.__kkPremiumMonitor =
-    setInterval(scan,POLL_INTERVAL);
+    console.log("Threshold :",CONFIG.THRESHOLD);
 
-console.clear();
+    console.log("--------------------------------");
 
-console.log("");
+    scan();
 
-console.log("===================================");
+    setInterval(scan,CONFIG.SCAN_INTERVAL);
 
-console.log(" Premium Monitor Started");
-
-console.log(" Threshold :",THRESHOLD);
-
-console.log(" Interval  :",POLL_INTERVAL,"ms");
-
-console.log("===================================");
+    startFlash();
 
 })();
