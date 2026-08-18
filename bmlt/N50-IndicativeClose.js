@@ -55,27 +55,44 @@ box-shadow:0 2px 8px rgba(0,0,0,.4);
   //====================================================
 
   function ensureExpanded(wrapper) {
-    if (expandedOnce) return true;
+    // Already expanded?
+    if (wrapper.querySelector(".market-depth")) return true;
 
-    let md = wrapper.querySelector(".market-depth");
+    // This is what YOU actually click with the mouse
+    const clickTarget = wrapper.querySelector(".item-info-wrapper");
 
-    if (md) {
-      expandedOnce = true;
+    if (!clickTarget) return false;
 
-      return true;
-    }
+    // Scroll into view first
+    clickTarget.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+    });
 
-    // Click only the NIFTY row
+    // Simulate a real mouse click
+    clickTarget.dispatchEvent(
+      new MouseEvent("mousedown", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      }),
+    );
 
-    const item = wrapper.querySelector(".item");
+    clickTarget.dispatchEvent(
+      new MouseEvent("mouseup", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      }),
+    );
 
-    if (item) {
-      item.click();
-
-      expandedOnce = true;
-
-      return false;
-    }
+    clickTarget.dispatchEvent(
+      new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      }),
+    );
 
     return false;
   }
