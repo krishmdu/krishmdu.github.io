@@ -58,41 +58,13 @@ box-shadow:0 2px 8px rgba(0,0,0,.4);
     // Already expanded?
     if (wrapper.querySelector(".market-depth")) return true;
 
-    // This is what YOU actually click with the mouse
-    const clickTarget = wrapper.querySelector(".item-info-wrapper");
+    // Find the actual Market Depth button
+    const btn = wrapper.querySelector('button[aria-label="Market depth"]');
 
-    if (!clickTarget) return false;
+    if (!btn) return false;
 
-    // Scroll into view first
-    clickTarget.scrollIntoView({
-      block: "nearest",
-      inline: "nearest",
-    });
-
-    // Simulate a real mouse click
-    clickTarget.dispatchEvent(
-      new MouseEvent("mousedown", {
-        bubbles: true,
-        cancelable: true,
-        view: window,
-      }),
-    );
-
-    clickTarget.dispatchEvent(
-      new MouseEvent("mouseup", {
-        bubbles: true,
-        cancelable: true,
-        view: window,
-      }),
-    );
-
-    clickTarget.dispatchEvent(
-      new MouseEvent("click", {
-        bubbles: true,
-        cancelable: true,
-        view: window,
-      }),
-    );
+    // Click exactly what you click manually
+    btn.click();
 
     return false;
   }
@@ -135,7 +107,7 @@ box-shadow:0 2px 8px rgba(0,0,0,.4);
     if (!expanded) {
       badge.innerHTML = "Opening NIFTY Market Depth...";
 
-      setTimeout(update, 350);
+      setTimeout(update, 600);
 
       return;
     }
